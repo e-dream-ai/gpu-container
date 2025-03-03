@@ -16,6 +16,9 @@ jobs:
       - name: Delete more stuff
         run: cd /opt & find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
 
+      - name: Free Disk Space - Ubuntu Runners
+        uses: endersonmenezes/free-disk-space@v2
+
       - name: Checkout
         uses: actions/checkout@v3
 
