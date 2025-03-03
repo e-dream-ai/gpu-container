@@ -10,6 +10,12 @@ jobs:
   dev:
     runs-on: ubuntu-latest
     steps:
+      - name: Delete huge unnecessary tools folder # https://github.com/orgs/community/discussions/25678
+        run: rm -rf /opt/hostedtoolcache
+
+      - name: Delete more stuff
+        run: cd /opt & find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
+
       - name: Checkout
         uses: actions/checkout@v3
 
