@@ -16,6 +16,7 @@ Read our article here: https://blib.la/blog/comfyui-on-runpod
 
 <!-- toc -->
 
+- [Building](#building)
 - [Quickstart](#quickstart)
 - [Features](#features)
 - [Config](#config)
@@ -52,6 +53,23 @@ Read our article here: https://blib.la/blog/comfyui-on-runpod
 <!-- tocstop -->
 
 ---
+
+## Building
+
+To manually build a new docker image:
+
+1. Visit https://github.com/e-dream-ai/gpu-container/actions/workflows/dev.yml
+2. Click 'Run workfow'
+3. Click the green 'Run workflow' button
+4. You will see a job start. To get details, click on the new job
+5. You can see the build log by clicking on the active job on the left
+
+To refresh the image in runpod:
+
+1. Visit https://www.runpod.io/console/serverless/user/endpoint/89vs9h0qx0g966?tab=workers
+2. Click the trash can to the right to terminate the current worker
+3. Click the 'Terminate worker' button
+4. A new worker should be created. Click on the new worker to see a build log
 
 ## Quickstart
 
