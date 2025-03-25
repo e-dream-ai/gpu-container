@@ -1,5 +1,6 @@
 services:
   comfyui-worker:
+    platform: linux/amd64
     image: timpietruskyblibla/runpod-worker-comfy:3.4.0-sdxl
     deploy:
       resources:
