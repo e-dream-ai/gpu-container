@@ -38,7 +38,6 @@ jobs:
           remove_haskell: true
           remove-codeql: true
           remove-docker-images: true
-          overprovision-lvm: true
 
       - name: Clear space to remove unused folders
         run: |
