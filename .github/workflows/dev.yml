@@ -73,14 +73,6 @@ jobs:
           echo "HUGGINGFACE_ACCESS_TOKEN=${{ secrets.HUGGINGFACE_ACCESS_TOKEN }}" >> $GITHUB_ENV
           echo "RELEASE_VERSION=${GITHUB_REF##refs/heads/}" | sed 's/\//-/g' >> $GITHUB_ENV
 
-      - name: Free Disk Space (Ubuntu)
-        uses: insightsengineering/disk-space-reclaimer@v1
-
-      - name: Build
-        run: |
-          echo "Free space:"
-          df -h
-
       - name: Build and push the images to Docker Hub
         uses: docker/bake-action@v2
         with:
