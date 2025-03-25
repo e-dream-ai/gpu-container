@@ -71,16 +71,16 @@ ARG MODEL_TYPE
 WORKDIR /comfyui
 
 # Create necessary directories
-RUN mkdir -p models/checkpoints models/vae models/animatediff_models
+RUN mkdir -p models/checkpoints models/vae models/animatediff_models models/sd1
 
 # Download checkpoints/vae/LoRA to include in image based on model type
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget -nv -O models/checkpoints/sd_xl_base_1.0.safetensors https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors && \
       wget -nv -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sdxl_vae.safetensors && \
       wget -nv -O models/vae/sdxl-vae-fp16-fix.safetensors https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/dreamshaper_8.safetensors https://huggingface.co/digiplay/DreamShaper_8/resolve/main/dreamshaper_8.safetensors && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae-ft-mse-840000-ema-pruned.safetensors https://huggingface.co/stabilityai/sd-vae-ft-mse-original/resolve/main/vae-ft-mse-840000-ema-pruned.safetensors && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/mm_sd_v15_v2.ckpt https://huggingface.co/guoyww/animatediff/resolve/main/mm_sd_v15_v2.ckpt && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/sd1/dreamshaper_8.safetensors https://huggingface.co/digiplay/DreamShaper_8/resolve/main/dreamshaper_8.safetensors && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/sd1/vae-ft-mse-840000-ema-pruned.safetensors https://huggingface.co/stabilityai/sd-vae-ft-mse-original/resolve/main/vae-ft-mse-840000-ema-pruned.safetensors && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/sd1/mm_sd_v15_v2.ckpt https://huggingface.co/guoyww/animatediff/resolve/main/mm_sd_v15_v2.ckpt && \
       wget -nv -O models/animatediff_models/temporaldiff-v1-animatediff.safetensors https://huggingface.co/CiaraRowles/TemporalDiff/resolve/main/temporaldiff-v1-animatediff.safetensors; \
     elif [ "$MODEL_TYPE" = "sd3" ]; then \
       wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/checkpoints/sd3_medium_incl_clips_t5xxlfp8.safetensors https://huggingface.co/stabilityai/stable-diffusion-3-medium/resolve/main/sd3_medium_incl_clips_t5xxlfp8.safetensors; \
