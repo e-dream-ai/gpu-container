@@ -236,6 +236,10 @@ def process_output_images(outputs, job_id):
 
     for node_id, node_output in outputs.items():
         print(f"node_output: ${node_output}")
+        if "gifs" in node_output:
+            for video in node_output["gifs"]:
+                output_images = os.path.join(video["subfolder"], video["filename"])
+                break
         if "images" in node_output:
             for image in node_output["images"]:
                 output_images = os.path.join(image["subfolder"], image["filename"])
