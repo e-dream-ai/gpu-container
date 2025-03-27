@@ -199,7 +199,7 @@ def base64_encode(img_path):
         encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
         return f"{encoded_string}"
 
-def get_output_image_path(outputs)
+def get_output_image_path(outputs):
     """
     Returns an image or video path, preferring video
 
