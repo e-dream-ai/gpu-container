@@ -328,7 +328,7 @@ def handler(job):
 
             # Exit the loop if we have found the history
             if prompt_id in history and history[prompt_id].get("outputs"):
-                print(f"got outputs: {history[prompt_id].get("outputs")}")
+                print(f"got outputs: {history[prompt_id].get('outputs')}")
                 break
             else:
                 # Wait before trying again
