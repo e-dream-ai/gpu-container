@@ -199,6 +199,28 @@ def base64_encode(img_path):
         encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
         return f"{encoded_string}"
 
+def get_output_image_path(outputs)
+    """
+    Returns an image or video path, preferring video
+
+    Returns:
+        str: path to the generated video or image
+    """
+    output_images = {}
+
+    for node_id, node_output in outputs.items():
+        print(f"node_output: ${node_output}")
+        if "gifs" in node_output:
+            # these appear first in the generated output
+            for video in node_output["gifs"]:
+                output_images = os.path.join(video["subfolder"], video["filename"])
+                ## return first video
+                return output_images
+        if "images" in node_output:
+            for image in node_output["images"]:
+                output_images = os.path.join(image["subfolder"], image["filename"])
+
+    return output_images
 
 def process_output_images(outputs, job_id):
     """
@@ -232,17 +254,7 @@ def process_output_images(outputs, job_id):
     # The path where ComfyUI stores the generated images
     COMFY_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", "/comfyui/output")
 
-    output_images = {}
-
-    for node_id, node_output in outputs.items():
-        print(f"node_output: ${node_output}")
-        if "gifs" in node_output:
-            for video in node_output["gifs"]:
-                output_images = os.path.join(video["subfolder"], video["filename"])
-                break
-        if "images" in node_output:
-            for image in node_output["images"]:
-                output_images = os.path.join(image["subfolder"], image["filename"])
+    output_images = get_output_image_path(outputs)
 
     print(f"runpod-worker-comfy - image generation is done")
 
@@ -332,7 +344,6 @@ def handler(job):
 
             # Exit the loop if we have found the history
             if prompt_id in history and history[prompt_id].get("outputs"):
-                print(f"got outputs: {history[prompt_id].get('outputs')}")
                 break
             else:
                 # Wait before trying again
