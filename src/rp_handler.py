@@ -235,6 +235,7 @@ def process_output_images(outputs, job_id):
     output_images = {}
 
     for node_id, node_output in outputs.items():
+        print(f"node_output: ${node_output}")
         if "images" in node_output:
             for image in node_output["images"]:
                 output_images = os.path.join(image["subfolder"], image["filename"])
@@ -337,6 +338,7 @@ def handler(job):
     except Exception as e:
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
+    print(f"got outputs: {history[prompt_id].get("outputs")}")
     # Get the generated image and return it as URL in an AWS bucket or as base64
     images_result = process_output_images(history[prompt_id].get("outputs"), job["id"])
 
