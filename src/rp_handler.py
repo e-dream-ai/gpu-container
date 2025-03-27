@@ -338,7 +338,8 @@ def handler(job):
     except Exception as e:
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
-    print(f"got outputs: {history[prompt_id].get("outputs")}")
+    if prompt_id in history and history[prompt_id].get("outputs"):
+        print(f"got outputs: {history[prompt_id].get("outputs")}")
     # Get the generated image and return it as URL in an AWS bucket or as base64
     images_result = process_output_images(history[prompt_id].get("outputs"), job["id"])
 
