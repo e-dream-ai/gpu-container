@@ -52,10 +52,6 @@ WORKDIR /
 ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json ./
 RUN chmod +x /start.sh /restore_snapshot.sh
 
-RUN if [ "$MODEL_TYPE" = "hunyuan" ]; then \
-    git checkout hunyuan; \
-    fi
-
 # Optionally copy the snapshot file
 ADD *snapshot*.json /
 
