@@ -8,7 +8,7 @@ on:
 
 jobs:
   dev:
-    runs-on: ubuntu-latest
+    runs-on: container-builder
     steps:
       - name: Build
         run: |
