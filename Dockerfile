@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install comfy-cli
-RUN pip install comfy-cli
+RUN pip install comfy-cli --no-cache-dir
 
 # Install ComfyUI
 RUN /usr/bin/yes | comfy --workspace /comfyui install --cuda-version 11.8 --nvidia --version 0.3.4
@@ -37,10 +37,7 @@ RUN comfy tracking disable
 WORKDIR /comfyui
 
 # Install runpod
-RUN pip install runpod requests
-
-# free up space
-RUN pip cache info && pip cache purge
+RUN pip install runpod requests --no-cache-dir
 
 # Support for the network volume
 ADD src/extra_model_paths.yaml ./
@@ -85,6 +82,7 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
     elif [ "$MODEL_TYPE" = "sd3" ]; then \
       wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/checkpoints/sd3_medium_incl_clips_t5xxlfp8.safetensors https://huggingface.co/stabilityai/stable-diffusion-3-medium/resolve/main/sd3_medium_incl_clips_t5xxlfp8.safetensors; \
     elif [ "$MODEL_TYPE" = "hunyuan" ]; then \
+      pip install sageattention --no-cache-dir & \
       wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/diffusion_models/hunyuan_video_720_cfgdistill_bf16.safetensors https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_bf16.safetensors && \
       wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/hunyuan_video_vae_bf16.safetensors https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_vae_bf16.safetensors && \
 
