@@ -68,7 +68,7 @@ ARG MODEL_TYPE
 WORKDIR /comfyui
 
 # Create necessary directories
-RUN mkdir -p models/checkpoints models/vae/sd1 models/animatediff_models/sd1 models/checkpoints/sd1 models/LLM/Kijai/llava-llama-3-8b-text-encoder-tokenizer models/text_encoders/openai/clip-vit-large-patch14/
+RUN mkdir -p models/checkpoints models/vae/sd1 models/animatediff_models/sd1 models/checkpoints/sd1 models/LLM/Kijai/llava-llama-3-8b-text-encoder-tokenizer models/clip/openai/clip-vit-large-patch14/
 
 # Download checkpoints/vae/LoRA to include in image based on model type
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
@@ -97,17 +97,17 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/LLM/Kijai/llava-llama-3-8b-text-encoder-tokenizer/tokenizer.json https://huggingface.co/Kijai/llava-llama-3-8b-text-encoder-tokenizer/resolve/main/tokenizer.json && \
       wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/LLM/Kijai/llava-llama-3-8b-text-encoder-tokenizer/tokenizer_config.json https://huggingface.co/Kijai/llava-llama-3-8b-text-encoder-tokenizer/resolve/main/tokenizer_config.json && \
 
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/config.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/config.json && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/flax_model.msgpack https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/flax_model.msgpack && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/merges.txt https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/model.safetensors https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/model.safetensors && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/preprocessor_config.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/preprocessor_config.json && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/pytorch_model.bin https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/pytorch_model.bin && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/special_tokens_map.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/special_tokens_map.json && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/tf_model.h5 https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tf_model.h5 && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/tokenizer.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer.json && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/tokenizer_config.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json && \
-      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/openai/clip-vit-large-patch14/vocab.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json ; \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/config.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/config.json && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/flax_model.msgpack https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/flax_model.msgpack && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/merges.txt https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/model.safetensors https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/model.safetensors && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/preprocessor_config.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/preprocessor_config.json && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/pytorch_model.bin https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/pytorch_model.bin && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/special_tokens_map.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/special_tokens_map.json && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/tf_model.h5 https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tf_model.h5 && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/tokenizer.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer.json && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/tokenizer_config.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json && \
+      wget -nv --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/clip/openai/clip-vit-large-patch14/vocab.json https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json ; \
     elif [ "$MODEL_TYPE" = "flux1-schnell" ]; then \
       wget -O models/unet/flux1-schnell.safetensors https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/flux1-schnell.safetensors && \
       wget -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
