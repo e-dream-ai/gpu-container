@@ -209,7 +209,7 @@ def get_output_image_path(outputs):
     output_images = {}
 
     for node_id, node_output in outputs.items():
-        # print(f"node_output: ${node_output}")
+        print(f"node_output: ${node_output}")
         if "gifs" in node_output:
             # these appear first in the generated output
             for video in node_output["gifs"]:
