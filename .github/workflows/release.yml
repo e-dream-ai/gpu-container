@@ -61,7 +61,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BLIBLA_SEMANTIC_RELEASE }}
 
       - name: Set environment variables
-        if: steps.semanticrelease.outputs.new-release-published == 'true'
         run: |
           echo "DOCKERHUB_REPO=${{ vars.DOCKERHUB_REPO }}" >> $GITHUB_ENV
           echo "DOCKERHUB_IMG=${{ vars.DOCKERHUB_IMG }}" >> $GITHUB_ENV
@@ -69,7 +68,6 @@ jobs:
           echo "RELEASE_VERSION=${{ steps.semanticrelease.outputs.release-version }}" >> $GITHUB_ENV
 
       - name: Build and push the images to Docker Hub
-        if: steps.semanticrelease.outputs.new-release-published == 'true'
         uses: docker/bake-action@v2
         with:
           push: true
@@ -80,7 +78,6 @@ jobs:
             *.args.HUGGINGFACE_ACCESS_TOKEN=${{ env.HUGGINGFACE_ACCESS_TOKEN }}
 
       - name: Update description on Docker Hub
-        if: steps.semanticrelease.outputs.new-release-published == 'true'
         uses: peter-evans/dockerhub-description@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
