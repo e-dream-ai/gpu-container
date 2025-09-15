@@ -1,3 +1,10 @@
+# 1.0.0 (2025-09-15)
+
+
+### Features
+
+* add Docker build pipeline ([d9495c7](https://github.com/e-dream-ai/gpu-container/commit/d9495c7a25e2be579f625f242e96ffc17a7e0e5f))
+
 # [3.4.0](https://github.com/blib-la/runpod-worker-comfy/compare/3.3.0...3.4.0) (2024-11-19)
 
 
