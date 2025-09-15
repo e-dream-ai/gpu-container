@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/e-dream-ai/gpu-container/compare/1.0.0...1.0.1) (2025-09-15)
+
+
+### Bug Fixes
+
+* remove version specification for ComfyUI installation ([4e0a8ae](https://github.com/e-dream-ai/gpu-container/commit/4e0a8ae4741c869fd8b260436a8bfb6fca6f7eb8))
+
 # 1.0.0 (2025-09-15)
 
 
