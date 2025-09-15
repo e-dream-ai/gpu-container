@@ -1,3 +1,12 @@
+## [1.0.3](https://github.com/e-dream-ai/gpu-container/compare/1.0.2...1.0.3) (2025-09-15)
+
+
+### Bug Fixes
+
+* adjust disk space management settings in release workflow ([ea03a34](https://github.com/e-dream-ai/gpu-container/commit/ea03a34dbc822ef987863070e60dc429963599f1))
+* disk space problem ([ff09022](https://github.com/e-dream-ai/gpu-container/commit/ff09022810134a75dbe9ea1355ab8b127791c6fc))
+* streamline disk space management ([1899582](https://github.com/e-dream-ai/gpu-container/commit/1899582892968fc77a4ad5de4b0f270a611bd4a1))
+
 ## [1.0.2](https://github.com/e-dream-ai/gpu-container/compare/1.0.1...1.0.2) (2025-09-15)
 
 
