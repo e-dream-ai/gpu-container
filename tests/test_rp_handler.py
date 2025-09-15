@@ -125,7 +125,15 @@ class TestRunpodWorkerComfy(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open, read_data=b"test")
     @patch("rp_handler.os.path.exists")
     @patch.dict(
-        os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
+        os.environ, 
+        {
+            "COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES,
+            "R2_ENDPOINT_URL": "",
+            "R2_ACCESS_KEY_ID": "",
+            "R2_SECRET_ACCESS_KEY": "",
+            "R2_BUCKET_NAME": ""
+        },
+        clear=False
     )
     def test_r2_endpoint_not_configured(self, mock_exists, mock_file):
         mock_exists.return_value = True

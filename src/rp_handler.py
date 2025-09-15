@@ -329,7 +329,7 @@ def process_output_images(outputs, job_id):
 
     # The image is in the output folder
     if os.path.exists(local_image_path):
-        if os.environ.get("R2_ENDPOINT_URL", False):
+        if os.environ.get("R2_ENDPOINT_URL"):
             try:
                 # URL to image in Cloudflare R2
                 image = upload_to_r2(job_id, local_image_path)
