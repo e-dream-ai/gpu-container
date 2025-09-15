@@ -1,5 +1,4 @@
 import runpod
-from runpod.serverless.utils import rp_upload
 import json
 import urllib.request
 import urllib.parse
@@ -7,6 +6,8 @@ import time
 import os
 import requests
 import base64
+import boto3
+from botocore.exceptions import ClientError
 from io import BytesIO
 
 # Time to wait between API check attempts in milliseconds
@@ -185,6 +186,69 @@ def get_history(prompt_id):
         return json.loads(response.read())
 
 
+def upload_to_r2(job_id: str, image_path: str) -> str:
+    """
+    Upload an image to Cloudflare R2 storage.
+    
+    Args:
+        job_id (str): The unique identifier for the job
+        image_path (str): The local path to the image file
+        
+    Returns:
+        str: The public URL of the uploaded image
+        
+    Raises:
+        Exception: If upload fails or R2 is not properly configured
+    """
+    try:
+        # Get R2 configuration from environment variables
+        endpoint_url = os.environ.get("R2_ENDPOINT_URL")
+        access_key_id = os.environ.get("R2_ACCESS_KEY_ID") 
+        secret_access_key = os.environ.get("R2_SECRET_ACCESS_KEY")
+        bucket_name = os.environ.get("R2_BUCKET_NAME")
+        public_url_base = os.environ.get("R2_PUBLIC_URL_BASE")
+        
+        if not all([endpoint_url, access_key_id, secret_access_key, bucket_name]):
+            raise Exception("Missing R2 configuration. Please set R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME environment variables.")
+        
+        # Create S3 client configured for Cloudflare R2
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=endpoint_url,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
+            region_name='auto'
+        )
+        
+        # Generate unique filename with job ID
+        filename = os.path.basename(image_path)
+        name, ext = os.path.splitext(filename)
+        unique_filename = f"{job_id}-{name}{ext}"
+        
+        # Upload file to R2
+        with open(image_path, 'rb') as file:
+            s3_client.upload_fileobj(
+                file,
+                bucket_name,
+                unique_filename,
+                ExtraArgs={'ContentType': 'image/png'}
+            )
+        
+        # Return public URL
+        if public_url_base:
+            # Use custom public URL base if provided
+            return f"{public_url_base.rstrip('/')}/{unique_filename}"
+        else:
+            # Use default R2 public URL format
+            account_id = endpoint_url.split('://')[1].split('.')[0]
+            return f"https://pub-{account_id}.r2.dev/{unique_filename}"
+            
+    except ClientError as e:
+        raise Exception(f"Failed to upload to R2: {str(e)}")
+    except Exception as e:
+        raise Exception(f"R2 upload error: {str(e)}")
+
+
 def base64_encode(img_path):
     """
     Returns base64 encoded image.
@@ -226,7 +290,7 @@ def process_output_images(outputs, job_id):
     """
     This function takes the "outputs" from image generation and the job ID,
     then determines the correct way to return the image, either as a direct URL
-    to an AWS S3 bucket or as a base64 encoded string, depending on the
+    to a Cloudflare R2 bucket or as a base64 encoded string, depending on the
     environment configuration.
 
     Args:
@@ -236,7 +300,7 @@ def process_output_images(outputs, job_id):
 
     Returns:
         dict: A dictionary with the status ('success' or 'error') and the message,
-              which is either the URL to the image in the AWS S3 bucket or a base64
+              which is either the URL to the image in the Cloudflare R2 bucket or a base64
               encoded string of the image. In case of error, the message details the issue.
 
     The function works as follows:
@@ -244,9 +308,9 @@ def process_output_images(outputs, job_id):
       defaulting to "/comfyui/output" if not set.
     - It then iterates through the outputs to find the filenames of the generated images.
     - After confirming the existence of the image in the output folder, it checks if the
-      AWS S3 bucket is configured via the BUCKET_ENDPOINT_URL environment variable.
-    - If AWS S3 is configured, it uploads the image to the bucket and returns the URL.
-    - If AWS S3 is not configured, it encodes the image in base64 and returns the string.
+      Cloudflare R2 bucket is configured via the R2_ENDPOINT_URL environment variable.
+    - If R2 is configured, it uploads the image to the bucket and returns the URL.
+    - If R2 is not configured, it encodes the image in base64 and returns the string.
     - If the image file does not exist in the output folder, it returns an error status
       with a message indicating the missing image file.
     """
@@ -265,12 +329,19 @@ def process_output_images(outputs, job_id):
 
     # The image is in the output folder
     if os.path.exists(local_image_path):
-        if os.environ.get("BUCKET_ENDPOINT_URL", False):
-            # URL to image in AWS S3
-            image = rp_upload.upload_image(job_id, local_image_path)
-            print(
-                "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
-            )
+        if os.environ.get("R2_ENDPOINT_URL", False):
+            try:
+                # URL to image in Cloudflare R2
+                image = upload_to_r2(job_id, local_image_path)
+                print(
+                    "runpod-worker-comfy - the image was generated and uploaded to Cloudflare R2"
+                )
+            except Exception as e:
+                print(f"runpod-worker-comfy - R2 upload failed: {str(e)}")
+                return {
+                    "status": "error",
+                    "message": f"Failed to upload to R2: {str(e)}",
+                }
         else:
             # base64 image
             image = base64_encode(local_image_path)
@@ -354,7 +425,7 @@ def handler(job):
     except Exception as e:
         return {"error": f"Error waiting for image generation: {str(e)}"}
 
-    # Get the generated image and return it as URL in an AWS bucket or as base64
+    # Get the generated image and return it as URL in a Cloudflare R2 bucket or as base64
     images_result = process_output_images(history[prompt_id].get("outputs"), job["id"])
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}

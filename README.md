@@ -20,33 +20,33 @@ Read our article here: https://blib.la/blog/comfyui-on-runpod
 - [Quickstart](#quickstart)
 - [Features](#features)
 - [Config](#config)
-  * [Upload image to AWS S3](#upload-image-to-aws-s3)
+  - [Upload image to Cloudflare R2](#upload-image-to-cloudflare-r2)
 - [Use the Docker image on RunPod](#use-the-docker-image-on-runpod)
-  * [Create your template (optional)](#create-your-template-optional)
-  * [Create your endpoint](#create-your-endpoint)
-  * [GPU recommendations](#gpu-recommendations)
+  - [Create your template (optional)](#create-your-template-optional)
+  - [Create your endpoint](#create-your-endpoint)
+  - [GPU recommendations](#gpu-recommendations)
 - [API specification](#api-specification)
-  * [JSON Request Body](#json-request-body)
-  * [Fields](#fields)
-    + ["input.images"](#inputimages)
+  - [JSON Request Body](#json-request-body)
+  - [Fields](#fields)
+    - ["input.images"](#inputimages)
 - [Interact with your RunPod API](#interact-with-your-runpod-api)
-  * [Health status](#health-status)
-  * [Generate an image](#generate-an-image)
-    + [Example request for SDXL with cURL](#example-request-for-sdxl-with-curl)
+  - [Health status](#health-status)
+  - [Generate an image](#generate-an-image)
+    - [Example request for SDXL with cURL](#example-request-for-sdxl-with-curl)
 - [How to get the workflow from ComfyUI?](#how-to-get-the-workflow-from-comfyui)
 - [Bring Your Own Models and Nodes](#bring-your-own-models-and-nodes)
-  * [Network Volume](#network-volume)
-  * [Custom Docker Image](#custom-docker-image)
-    + [Adding Custom Models](#adding-custom-models)
-    + [Adding Custom Nodes](#adding-custom-nodes)
-    + [Building the Image](#building-the-image)
+  - [Network Volume](#network-volume)
+  - [Custom Docker Image](#custom-docker-image)
+    - [Adding Custom Models](#adding-custom-models)
+    - [Adding Custom Nodes](#adding-custom-nodes)
+    - [Building the Image](#building-the-image)
 - [Local testing](#local-testing)
-  * [Setup](#setup)
-    + [Setup for Windows](#setup-for-windows)
-  * [Testing the RunPod handler](#testing-the-runpod-handler)
-  * [Local API](#local-api)
-    + [Access the local Worker API](#access-the-local-worker-api)
-    + [Access local ComfyUI](#access-local-comfyui)
+  - [Setup](#setup)
+    - [Setup for Windows](#setup-for-windows)
+  - [Testing the RunPod handler](#testing-the-runpod-handler)
+  - [Local API](#local-api)
+    - [Access the local Worker API](#access-the-local-worker-api)
+    - [Access local ComfyUI](#access-local-comfyui)
 - [Automatically deploy to Docker hub with GitHub Actions](#automatically-deploy-to-docker-hub-with-github-actions)
 - [Acknowledgments](#acknowledgments)
 
@@ -88,7 +88,7 @@ To refresh the image in runpod:
 - Provide input images as base64-encoded string
 - The generated image is either:
   - Returned as base64-encoded string (default)
-  - Uploaded to AWS S3 ([if AWS S3 is configured](#upload-image-to-aws-s3))
+  - Uploaded to Cloudflare R2 ([if Cloudflare R2 is configured](#upload-image-to-cloudflare-r2))
 - There are a few different Docker images to choose from:
   - `timpietruskyblibla/runpod-worker-comfy:3.4.0-flux1-schnell`: contains the [flux1-schnell.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-schnell) checkpoint, the [clip_l.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors) + [t5xxl_fp8_e4m3fn.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors) text encoders and [ae.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors) VAE for FLUX.1-schnell
   - `timpietruskyblibla/runpod-worker-comfy:3.4.0-flux1-dev`: contains the [flux1-dev.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-dev) checkpoint, the [clip_l.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors) + [t5xxl_fp8_e4m3fn.safetensors](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors) text encoders and [ae.safetensors](https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors) VAE for FLUX.1-dev
@@ -110,20 +110,22 @@ To refresh the image in runpod:
 | `COMFY_POLLING_MAX_RETRIES` | Maximum number of poll attempts. This should be increased the longer your workflow is running.                                                                                        | `500`    |
 | `SERVE_API_LOCALLY`         | Enable local API server for development and testing. See [Local Testing](#local-testing) for more details.                                                                            | disabled |
 
-### Upload image to AWS S3
+### Upload image to Cloudflare R2
 
-This is only needed if you want to upload the generated picture to AWS S3. If you don't configure this, your image will be exported as base64-encoded string.
+This is only needed if you want to upload the generated picture to Cloudflare R2. If you don't configure this, your image will be exported as base64-encoded string.
 
-- Create a bucket in region of your choice in AWS S3 (`BUCKET_ENDPOINT_URL`)
-- Create an IAM that has access rights to AWS S3
-- Create an Access-Key (`BUCKET_ACCESS_KEY_ID` & `BUCKET_SECRET_ACCESS_KEY`) for that IAM
+- Create a Cloudflare R2 bucket in your Cloudflare dashboard
+- Create R2 API tokens with read and write permissions for your bucket
+- Configure your bucket for public access if you want direct image URLs
 - Configure these environment variables for your RunPod worker:
 
-| Environment Variable       | Description                                             | Example                                      |
-| -------------------------- | ------------------------------------------------------- | -------------------------------------------- |
-| `BUCKET_ENDPOINT_URL`      | The endpoint URL of your S3 bucket.                     | `https://<bucket>.s3.<region>.amazonaws.com` |
-| `BUCKET_ACCESS_KEY_ID`     | Your AWS access key ID for accessing the S3 bucket.     | `AKIAIOSFODNN7EXAMPLE`                       |
-| `BUCKET_SECRET_ACCESS_KEY` | Your AWS secret access key for accessing the S3 bucket. | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`   |
+| Environment Variable   | Description                                         | Example                                          |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------------ |
+| `R2_ENDPOINT_URL`      | The endpoint URL of your R2 account.                | `https://<account_id>.r2.cloudflarestorage.com`  |
+| `R2_ACCESS_KEY_ID`     | Your R2 access key ID for accessing the bucket.     | `f65a0b1234567890abcdef1234567890`               |
+| `R2_SECRET_ACCESS_KEY` | Your R2 secret access key for accessing the bucket. | `abcdef1234567890abcdef1234567890abcdef12345678` |
+| `R2_BUCKET_NAME`       | The name of your R2 bucket.                         | `my-comfyui-images`                              |
+| `R2_PUBLIC_URL_BASE`   | (Optional) Custom public URL base for your bucket.  | `https://images.mydomain.com`                    |
 
 ## Use the Docker image on RunPod
 
@@ -136,7 +138,7 @@ This is only needed if you want to upload the generated picture to AWS S3. If yo
   - Container Image: `<dockerhub_username>/<repository_name>:tag`, in this case: `timpietruskyblibla/runpod-worker-comfy:3.4.0-sd3` (or `-base` for a clean image or `-sdxl` for Stable Diffusion XL or `-flex1-schnell` for FLUX.1 schnell)
   - Container Registry Credentials: You can leave everything as it is, as this repo is public
   - Container Disk: `20 GB`
-  - (optional) Environment Variables: [Configure S3](#upload-image-to-aws-s3)
+  - (optional) Environment Variables: [Configure Cloudflare R2](#upload-image-to-cloudflare-r2)
     - Note: You can also not configure it, the images will then stay in the worker. In order to have them stored permanently, [we have to add the network volume](https://github.com/blib-la/runpod-worker-comfy/issues/1)
 - Click on `Save Template`
 
@@ -243,7 +245,7 @@ Please also take a look at the [test_input.json](./test_input.json) to see how t
 curl -X POST -H "Authorization: Bearer <api_key>" -H "Content-Type: application/json" -d '{"input":{"workflow":{"3":{"inputs":{"seed":1337,"steps":20,"cfg":8,"sampler_name":"euler","scheduler":"normal","denoise":1,"model":["4",0],"positive":["6",0],"negative":["7",0],"latent_image":["5",0]},"class_type":"KSampler"},"4":{"inputs":{"ckpt_name":"sd_xl_base_1.0.safetensors"},"class_type":"CheckpointLoaderSimple"},"5":{"inputs":{"width":512,"height":512,"batch_size":1},"class_type":"EmptyLatentImage"},"6":{"inputs":{"text":"beautiful scenery nature glass bottle landscape, purple galaxy bottle,","clip":["4",1]},"class_type":"CLIPTextEncode"},"7":{"inputs":{"text":"text, watermark","clip":["4",1]},"class_type":"CLIPTextEncode"},"8":{"inputs":{"samples":["3",0],"vae":["4",2]},"class_type":"VAEDecode"},"9":{"inputs":{"filename_prefix":"ComfyUI","images":["8",0]},"class_type":"SaveImage"}}}}' https://api.runpod.ai/v2/<endpoint_id>/runsync
 ```
 
-Example response with AWS S3 bucket configuration
+Example response with Cloudflare R2 bucket configuration
 
 ```json
 {
@@ -251,7 +253,7 @@ Example response with AWS S3 bucket configuration
   "executionTime": 2297,
   "id": "sync-c0cd1eb2-068f-4ecf-a99a-55770fc77391-e1",
   "output": {
-    "message": "https://bucket.s3.region.amazonaws.com/10-23/sync-c0cd1eb2-068f-4ecf-a99a-55770fc77391-e1/c67ad621.png",
+    "message": "https://pub-1234567890abcdef.r2.dev/job-12345-ComfyUI_00001_.png",
     "status": "success"
   },
   "status": "COMPLETED"
