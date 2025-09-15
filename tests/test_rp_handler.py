@@ -75,7 +75,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
     @patch("rp_handler.requests.get")
     def test_check_server_server_down(self, mock_requests):
-        mock_requests.get.side_effect = rp_handler.requests.RequestException()
+        mock_requests.side_effect = rp_handler.requests.RequestException()
         result = rp_handler.check_server("http://127.0.0.1:8188", 1, 50)
         self.assertFalse(result)
 
@@ -122,14 +122,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         self.assertEqual(result, test_data)
 
+    @patch("builtins.open", new_callable=mock_open, read_data=b"test")
     @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.base64_encode")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_r2_endpoint_not_configured(self, mock_base64_encode, mock_exists):
+    def test_r2_endpoint_not_configured(self, mock_exists, mock_file):
         mock_exists.return_value = True
-        mock_base64_encode.return_value = "base64encodedimage"
 
         outputs = {
             "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
@@ -138,11 +137,15 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         result = rp_handler.process_output_images(outputs, job_id)
 
+        # The expected base64 encoding of "test"
+        expected_base64 = base64.b64encode(b"test").decode("utf-8")
+        
         self.assertEqual(result["status"], "success")
-        self.assertEqual(result["message"], "base64encodedimage")
+        self.assertEqual(result["message"], expected_base64)
 
+    @patch("builtins.open", new_callable=mock_open, read_data=b"fake image data")
     @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.upload_to_r2")
+    @patch("rp_handler.boto3.client")
     @patch.dict(
         os.environ,
         {
@@ -153,12 +156,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
             "R2_BUCKET_NAME": "test-bucket",
         },
     )
-    def test_r2_endpoint_configured(self, mock_upload_to_r2, mock_exists):
+    def test_r2_endpoint_configured(self, mock_boto_client, mock_exists, mock_file):
         # Mock the os.path.exists to return True, simulating that the image exists
         mock_exists.return_value = True
 
-        # Mock the upload_to_r2 to return a simulated URL
-        mock_upload_to_r2.return_value = "https://pub-1234567890abcdef.r2.dev/123-ComfyUI_00001_.png"
+        # Mock the S3 client and its upload_fileobj method
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
 
         # Define the outputs and job_id for the test
         outputs = {"node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": "test"}]}}
@@ -170,12 +174,18 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Assertions
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["message"], "https://pub-1234567890abcdef.r2.dev/123-ComfyUI_00001_.png")
-        mock_upload_to_r2.assert_called_once_with(
-            job_id, "./test_resources/images/test/ComfyUI_00001_.png"
+        
+        # Verify that the S3 client was created with correct parameters
+        mock_boto_client.assert_called_once_with(
+            's3',
+            endpoint_url='https://1234567890abcdef.r2.cloudflarestorage.com',
+            aws_access_key_id='test_access_key',
+            aws_secret_access_key='test_secret_key',
+            region_name='auto'
         )
 
     @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.upload_to_r2")
+    @patch("rp_handler.boto3.client")
     @patch.dict(
         os.environ,
         {
@@ -187,13 +197,10 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         },
     )
     def test_r2_image_upload_fails_env_vars_wrong_or_missing(
-        self, mock_upload_to_r2, mock_exists
+        self, mock_boto_client, mock_exists
     ):
         # Simulate the file existing in the output path
         mock_exists.return_value = True
-
-        # When R2 credentials are wrong or missing, upload should raise an exception
-        mock_upload_to_r2.side_effect = Exception("Missing R2 configuration")
 
         outputs = {
             "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
@@ -205,6 +212,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         # Check if the upload failed with proper error message
         self.assertEqual(result["status"], "error")
         self.assertIn("Failed to upload to R2", result["message"])
+        self.assertIn("Missing R2 configuration", result["message"])
 
     @patch("rp_handler.requests.post")
     def test_upload_images_successful(self, mock_post):
