@@ -61,20 +61,17 @@ jobs:
           echo "HUGGINGFACE_ACCESS_TOKEN=${{ secrets.HUGGINGFACE_ACCESS_TOKEN }}" >> $GITHUB_ENV
           echo "RELEASE_VERSION=${{ steps.semanticrelease.outputs.release-version }}" >> $GITHUB_ENV
 
-      - name: Free Disk Space before Docker build
+      - name: Free Disk Space (Ubuntu)
         if: steps.semanticrelease.outputs.new-release-published == 'true'
-        run: |
-          echo "Available disk space before cleanup:"
-          df -h
-          # Remove only safe, non-Docker related folders
-          sudo rm -rf /usr/share/dotnet || true
-          sudo rm -rf /opt/ghc || true
-          sudo rm -rf /usr/local/share/boost || true
-          # Clean package cache
-          sudo apt-get clean || true
-          sudo rm -rf /var/lib/apt/lists/* || true
-          echo "Available disk space after cleanup:"
-          df -h
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
 
       - name: Build and push the images to Docker Hub
         if: steps.semanticrelease.outputs.new-release-published == 'true'
