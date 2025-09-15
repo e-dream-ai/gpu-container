@@ -1,3 +1,11 @@
+## [1.0.2](https://github.com/e-dream-ai/gpu-container/compare/1.0.1...1.0.2) (2025-09-15)
+
+
+### Bug Fixes
+
+* bring back free disk space ([f4bc1b9](https://github.com/e-dream-ai/gpu-container/commit/f4bc1b904fadbb59296c411a11aba40fb47988dc))
+* update disk space management ([6bd4c12](https://github.com/e-dream-ai/gpu-container/commit/6bd4c12c829ebe3037882daf74ad980dd2cf9bfc))
+
 ## [1.0.1](https://github.com/e-dream-ai/gpu-container/compare/1.0.0...1.0.1) (2025-09-15)
 
 
