@@ -8,7 +8,8 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, container-builder]
+
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
     permissions:
       contents: write
@@ -27,7 +28,14 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install --no-cache-dir -r requirements.txt
+        run: pip install -r requirements.txt
+
+      # - name: Clear space to remove unused folders
+      #   run: |
+      #     rm -rf /usr/share/dotnet
+      #     rm -rf /opt/ghc
+      #     rm -rf "/usr/local/share/boost"
+      #     rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -60,18 +68,6 @@ jobs:
           echo "DOCKERHUB_IMG=${{ vars.DOCKERHUB_IMG }}" >> $GITHUB_ENV
           echo "HUGGINGFACE_ACCESS_TOKEN=${{ secrets.HUGGINGFACE_ACCESS_TOKEN }}" >> $GITHUB_ENV
           echo "RELEASE_VERSION=${{ steps.semanticrelease.outputs.release-version }}" >> $GITHUB_ENV
-
-      - name: Free Disk Space (Ubuntu)
-        if: steps.semanticrelease.outputs.new-release-published == 'true'
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: true
 
       - name: Build and push the images to Docker Hub
         if: steps.semanticrelease.outputs.new-release-published == 'true'
