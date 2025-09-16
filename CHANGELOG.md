@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/e-dream-ai/gpu-container/compare/1.0.3...1.0.4) (2025-09-15)
+
+
+### Bug Fixes
+
+* update disk space cleanup method in workflow ([3fc9212](https://github.com/e-dream-ai/gpu-container/commit/3fc9212b0daf6e07eb999314606f788d767b594e))
+
 ## [1.0.3](https://github.com/e-dream-ai/gpu-container/compare/1.0.2...1.0.3) (2025-09-15)
 
 
