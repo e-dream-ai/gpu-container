@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/e-dream-ai/gpu-container/compare/1.0.8...1.0.9) (2025-09-16)
+
+
+### Bug Fixes
+
+* enhance upload_to_r2 function to return presigned url and handle content types ([996fc12](https://github.com/e-dream-ai/gpu-container/commit/996fc127927f3d0d98caa8cf175672c4172da761))
+
 ## [1.0.8](https://github.com/e-dream-ai/gpu-container/compare/1.0.7...1.0.8) (2025-09-16)
 
 
