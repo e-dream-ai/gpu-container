@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/e-dream-ai/gpu-container/compare/1.0.6...1.0.7) (2025-09-16)
+
+
+### Bug Fixes
+
+* enhance image generation logging and configure PyTorch CUDA allocator ([c5fdb96](https://github.com/e-dream-ai/gpu-container/commit/c5fdb96c7a2c4ef0e0142ae1e66c5b4fed96ec82))
+
 ## [1.0.6](https://github.com/e-dream-ai/gpu-container/compare/1.0.5...1.0.6) (2025-09-16)
 
 
