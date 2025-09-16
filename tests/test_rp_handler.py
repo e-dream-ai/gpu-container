@@ -162,14 +162,16 @@ class TestRunpodWorkerComfy(unittest.TestCase):
             "R2_ACCESS_KEY_ID": "test_access_key",
             "R2_SECRET_ACCESS_KEY": "test_secret_key",
             "R2_BUCKET_NAME": "test-bucket",
+            "R2_PRESIGNED_EXPIRY": "3600"
         },
     )
     def test_r2_endpoint_configured(self, mock_boto_client, mock_exists, mock_file):
         # Mock the os.path.exists to return True, simulating that the image exists
         mock_exists.return_value = True
 
-        # Mock the S3 client and its upload_fileobj method
+        # Mock the S3 client and its methods
         mock_s3_client = MagicMock()
+        mock_s3_client.generate_presigned_url.return_value = "https://presigned.url/123-ComfyUI_00001_.png?signature=abc123"
         mock_boto_client.return_value = mock_s3_client
 
         # Define the outputs and job_id for the test
@@ -181,7 +183,11 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         # Assertions
         self.assertEqual(result["status"], "success")
-        self.assertEqual(result["message"], "https://pub-1234567890abcdef.r2.dev/123-ComfyUI_00001_.png")
+        self.assertEqual(result["message"], "https://presigned.url/123-ComfyUI_00001_.png?signature=abc123")
+        self.assertEqual(result["video"], "https://presigned.url/123-ComfyUI_00001_.png?signature=abc123")
+        self.assertEqual(result["s3_key"], "123-ComfyUI_00001_.png")
+        self.assertEqual(result["bucket"], "test-bucket")
+        self.assertEqual(result["expires_in"], 3600)
         
         # Verify that the S3 client was created with correct parameters
         mock_boto_client.assert_called_once_with(
@@ -189,7 +195,15 @@ class TestRunpodWorkerComfy(unittest.TestCase):
             endpoint_url='https://1234567890abcdef.r2.cloudflarestorage.com',
             aws_access_key_id='test_access_key',
             aws_secret_access_key='test_secret_key',
-            region_name='auto'
+            region_name='auto',
+            config=unittest.mock.ANY
+        )
+        
+        # Verify that presigned URL was generated
+        mock_s3_client.generate_presigned_url.assert_called_once_with(
+            'get_object',
+            Params={'Bucket': 'test-bucket', 'Key': '123-ComfyUI_00001_.png'},
+            ExpiresIn=3600
         )
 
     @patch("rp_handler.os.path.exists")
