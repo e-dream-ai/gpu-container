@@ -18,6 +18,8 @@ COMFY_API_AVAILABLE_MAX_RETRIES = 500
 COMFY_POLLING_INTERVAL_MS = int(os.environ.get("COMFY_POLLING_INTERVAL_MS", 250))
 # Maximum number of poll attempts
 COMFY_POLLING_MAX_RETRIES = int(os.environ.get("COMFY_POLLING_MAX_RETRIES", 500))
+# Percent step at which to log progress while waiting for image generation
+PROGRESS_LOG_STEP = int(os.environ.get("PROGRESS_LOG_STEP", 10))
 # Host where ComfyUI is running
 COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
@@ -320,7 +322,7 @@ def process_output_images(outputs, job_id):
 
     output_images = get_output_image_path(outputs)
 
-    print(f"runpod-worker-comfy - image generation is done")
+    print(f"runpod-worker-comfy - image generation is done (100%)")
 
     # expected image output folder
     local_image_path = f"{COMFY_OUTPUT_PATH}/{output_images}"
@@ -410,6 +412,7 @@ def handler(job):
     print(f"runpod-worker-comfy - wait until image generation is complete")
     retries = 0
     try:
+        last_logged_percent = -1
         while retries < COMFY_POLLING_MAX_RETRIES:
             history = get_history(prompt_id)
 
@@ -417,6 +420,15 @@ def handler(job):
             if prompt_id in history and history[prompt_id].get("outputs"):
                 break
             else:
+                # Log progress in percent based on retries and max retries
+                if COMFY_POLLING_MAX_RETRIES > 0 and PROGRESS_LOG_STEP > 0:
+                    percent = int((retries * 100) / COMFY_POLLING_MAX_RETRIES)
+                    step_bucket = (percent // PROGRESS_LOG_STEP) * PROGRESS_LOG_STEP
+                    if step_bucket != last_logged_percent and step_bucket > 0:
+                        print(
+                            f"runpod-worker-comfy - progress: {step_bucket}% (retries {retries}/{COMFY_POLLING_MAX_RETRIES})"
+                        )
+                        last_logged_percent = step_bucket
                 # Wait before trying again
                 time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
                 retries += 1

@@ -9,6 +9,8 @@ ENV PIP_PREFER_BINARY=1
 ENV PYTHONUNBUFFERED=1 
 # Speed up some cmake builds
 ENV CMAKE_BUILD_PARALLEL_LEVEL=8
+## Ensure PyTorch uses a consistent CUDA allocator across load/runtime
+ENV PYTORCH_CUDA_ALLOC_CONF=backend:cudaMallocAsync
 
 # Install Python, git and other necessary tools
 RUN apt-get update && apt-get install -y \
