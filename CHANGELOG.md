@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/e-dream-ai/gpu-container/compare/1.0.5...1.0.6) (2025-09-16)
+
+
+### Bug Fixes
+
+* remove Docker Hub description update step from workflow ([451d083](https://github.com/e-dream-ai/gpu-container/commit/451d08391b21c4584412179ab2c1a200a26f1c99))
+
 ## [1.0.5](https://github.com/e-dream-ai/gpu-container/compare/1.0.4...1.0.5) (2025-09-16)
 
 
