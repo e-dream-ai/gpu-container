@@ -1,3 +1,11 @@
+## [1.0.8](https://github.com/e-dream-ai/gpu-container/compare/1.0.7...1.0.8) (2025-09-16)
+
+
+### Bug Fixes
+
+* branch merge ([327fb9c](https://github.com/e-dream-ai/gpu-container/commit/327fb9cb4c83d45d171047705616defd60b7e21f))
+* silence benign torchsde float precision warning in Dockerfile ([d17e09f](https://github.com/e-dream-ai/gpu-container/commit/d17e09fc49c198d7b07b844bd5eb93d5203d691c))
+
 ## [1.0.7](https://github.com/e-dream-ai/gpu-container/compare/1.0.6...1.0.7) (2025-09-16)
 
 
