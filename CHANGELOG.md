@@ -1,3 +1,12 @@
+## [1.0.5](https://github.com/e-dream-ai/gpu-container/compare/1.0.4...1.0.5) (2025-09-16)
+
+
+### Bug Fixes
+
+* update release workflow to use self-hosted runner ([7a9d7dd](https://github.com/e-dream-ai/gpu-container/commit/7a9d7ddf084edc9f4c708a6176fa525d507088fd))
+* use larger runner ([c60bbdb](https://github.com/e-dream-ai/gpu-container/commit/c60bbdba67a8a7057ca3e1130b5558bef10ea4d9))
+* use larger runner ([e35bfb2](https://github.com/e-dream-ai/gpu-container/commit/e35bfb28c8d96f3a09f40b82a48272a565a39634))
+
 ## [1.0.4](https://github.com/e-dream-ai/gpu-container/compare/1.0.3...1.0.4) (2025-09-15)
 
 
