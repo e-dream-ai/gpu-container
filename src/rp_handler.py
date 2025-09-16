@@ -188,63 +188,96 @@ def get_history(prompt_id):
         return json.loads(response.read())
 
 
-def upload_to_r2(job_id: str, image_path: str) -> str:
+def upload_to_r2(job_id: str, image_path: str) -> dict:
     """
-    Upload an image to Cloudflare R2 storage.
-    
+    Upload a file to Cloudflare R2 and return a pre-signed URL with metadata.
+
     Args:
-        job_id (str): The unique identifier for the job
-        image_path (str): The local path to the image file
-        
+        job_id (str): The unique identifier for the job.
+        image_path (str): The local path to the output file.
+
     Returns:
-        str: The public URL of the uploaded image
-        
+        dict: {
+            "url": str,          # Pre-signed (or fallback public) URL to access the object
+            "s3_key": str,       # Object key within the bucket
+            "bucket": str,       # Bucket name
+            "expires_in": int    # Expiration seconds for the pre-signed URL (if applicable)
+        }
+
     Raises:
-        Exception: If upload fails or R2 is not properly configured
+        Exception: If upload fails or R2 is not properly configured.
     """
     try:
-        # Get R2 configuration from environment variables
         endpoint_url = os.environ.get("R2_ENDPOINT_URL")
-        access_key_id = os.environ.get("R2_ACCESS_KEY_ID") 
+        access_key_id = os.environ.get("R2_ACCESS_KEY_ID")
         secret_access_key = os.environ.get("R2_SECRET_ACCESS_KEY")
         bucket_name = os.environ.get("R2_BUCKET_NAME")
+        upload_directory = os.environ.get("R2_UPLOAD_DIRECTORY", "").strip().strip("/")
+        expires_in = int(os.environ.get("R2_PRESIGNED_EXPIRY", "86400"))
         public_url_base = os.environ.get("R2_PUBLIC_URL_BASE")
-        
+
         if not all([endpoint_url, access_key_id, secret_access_key, bucket_name]):
-            raise Exception("Missing R2 configuration. Please set R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME environment variables.")
-        
-        # Create S3 client configured for Cloudflare R2
+            raise Exception(
+                "Missing R2 configuration. Please set R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME environment variables."
+            )
+
         s3_client = boto3.client(
             's3',
             endpoint_url=endpoint_url,
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_access_key,
-            region_name='auto'
+            region_name='auto',
+            config=boto3.session.Config(s3={"addressing_style": "path"})
         )
-        
-        # Generate unique filename with job ID
+
         filename = os.path.basename(image_path)
         name, ext = os.path.splitext(filename)
-        unique_filename = f"{job_id}-{name}{ext}"
-        
-        # Upload file to R2
+        ext_lower = ext.lower()
+        unique_filename = f"{job_id}-{name}{ext_lower}"
+        s3_key = f"{upload_directory}/{unique_filename}" if upload_directory else unique_filename
+
+        content_type = "application/octet-stream"
+        if ext_lower == ".png":
+            content_type = "image/png"
+        elif ext_lower in (".jpg", ".jpeg"):
+            content_type = "image/jpeg"
+        elif ext_lower == ".gif":
+            content_type = "image/gif"
+        elif ext_lower == ".mp4":
+            content_type = "video/mp4"
+
         with open(image_path, 'rb') as file:
             s3_client.upload_fileobj(
                 file,
                 bucket_name,
-                unique_filename,
-                ExtraArgs={'ContentType': 'image/png'}
+                s3_key,
+                ExtraArgs={'ContentType': content_type}
             )
-        
-        # Return public URL
-        if public_url_base:
-            # Use custom public URL base if provided
-            return f"{public_url_base.rstrip('/')}/{unique_filename}"
-        else:
-            # Use default R2 public URL format
-            account_id = endpoint_url.split('://')[1].split('.')[0]
-            return f"https://pub-{account_id}.r2.dev/{unique_filename}"
-            
+
+        try:
+            presigned_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': bucket_name, 'Key': s3_key},
+                ExpiresIn=expires_in
+            )
+            return {
+                "url": presigned_url,
+                "s3_key": s3_key,
+                "bucket": bucket_name,
+                "expires_in": expires_in
+            }
+        except Exception:
+            if public_url_base:
+                fallback_url = f"{public_url_base.rstrip('/')}/{s3_key}"
+            else:
+                account_id = endpoint_url.split('://')[1].split('.')[0]
+                fallback_url = f"https://{account_id}.r2.dev/{s3_key}"
+            return {
+                "url": fallback_url,
+                "s3_key": s3_key,
+                "bucket": bucket_name
+            }
+
     except ClientError as e:
         raise Exception(f"Failed to upload to R2: {str(e)}")
     except Exception as e:
@@ -333,8 +366,8 @@ def process_output_images(outputs, job_id):
     if os.path.exists(local_image_path):
         if os.environ.get("R2_ENDPOINT_URL"):
             try:
-                # URL to image in Cloudflare R2
-                image = upload_to_r2(job_id, local_image_path)
+                meta = upload_to_r2(job_id, local_image_path)
+                image = meta.get("url")
                 print(
                     "runpod-worker-comfy - the image was generated and uploaded to Cloudflare R2"
                 )
@@ -351,10 +384,16 @@ def process_output_images(outputs, job_id):
                 "runpod-worker-comfy - the image was generated and converted to base64"
             )
 
-        return {
-            "status": "success",
-            "message": image,
-        }
+        result = {"status": "success", "message": image}
+        if os.environ.get("R2_ENDPOINT_URL"):
+            # add metadata fields if present
+            result.update({
+                "s3_key": meta.get("s3_key"),
+                "bucket": meta.get("bucket"),
+                "expires_in": meta.get("expires_in")
+            })
+            result["video"] = image
+        return result
     else:
         print("runpod-worker-comfy - the image does not exist in the output folder")
         return {
