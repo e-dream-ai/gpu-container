@@ -1,3 +1,10 @@
+## [1.0.11](https://github.com/e-dream-ai/gpu-container/compare/1.0.10...1.0.11) (2026-01-06)
+
+
+### Bug Fixes
+
+* build progress ([94d5e5b](https://github.com/e-dream-ai/gpu-container/commit/94d5e5b6d08582831cc76d6ee9775aba1c9413f2))
+
 ## [1.0.10](https://github.com/e-dream-ai/gpu-container/compare/1.0.9...1.0.10) (2025-09-16)
 
 ### Bug Fixes
