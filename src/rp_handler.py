@@ -467,6 +467,7 @@ def handler(job):
                         print(
                             f"runpod-worker-comfy - progress: {step_bucket}% (retries {retries}/{COMFY_POLLING_MAX_RETRIES})"
                         )
+                        runpod.serverless.progress_update(job, step_bucket)
                         last_logged_percent = step_bucket
                 # Wait before trying again
                 time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
