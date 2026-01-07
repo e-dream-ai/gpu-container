@@ -1,4 +1,4 @@
-# Stage 1: Base image with common dependencies #
+# Stage 1: Base image with common dependencies
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 AS base
 
 # Prevents prompts from packages asking for user input during installation
