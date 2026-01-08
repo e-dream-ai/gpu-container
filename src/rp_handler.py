@@ -300,7 +300,7 @@ def handler(job):
 
     try:
         ws = websocket.WebSocket()
-        ws.settimeout(1)  # 1 second timeout for recv
+        ws.settimeout(1)
         ws.connect(f"ws://{COMFY_HOST}/ws?clientId={client_id}")
         print(f"runpod-worker-comfy - WebSocket connected")
     except Exception as e:
@@ -317,7 +317,6 @@ def handler(job):
                     if isinstance(out, str):
                         message = json.loads(out)
 
-                        # Handle progress updates
                         if message.get("type") == "progress":
                             data = message.get("data", {})
                             value = data.get("value", 0)
@@ -333,7 +332,6 @@ def handler(job):
                                         )
                                     last_percent = percent
 
-                        # Check if execution is complete
                         elif message.get("type") == "executing":
                             data = message.get("data", {})
                             if (
@@ -341,18 +339,20 @@ def handler(job):
                                 and data.get("prompt_id") == prompt_id
                             ):
                                 print(
-                                    f"runpod-worker-comfy - execution complete (100%)"
+                                    f"runpod-worker-comfy - execution complete via WebSocket"
                                 )
-                                runpod.serverless.progress_update(job, 100)
                                 break
+                                
                 except websocket.WebSocketTimeoutException:
-                    pass
+                    history = get_history(prompt_id)
+                    if prompt_id in history and history[prompt_id].get("outputs"):
+                        print(f"runpod-worker-comfy - execution complete via history check")
+                        break
             else:
                 # Fallback: check history
                 history = get_history(prompt_id)
                 if prompt_id in history and history[prompt_id].get("outputs"):
                     print(f"runpod-worker-comfy - generation complete")
-                    runpod.serverless.progress_update(job, 100)
                     break
 
                 time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
@@ -363,10 +363,12 @@ def handler(job):
         if ws:
             ws.close()
 
-    # Get the generated image
     history = get_history(prompt_id)
     if not (prompt_id in history and history[prompt_id].get("outputs")):
         return {"error": "No outputs found in history"}
+
+    print(f"runpod-worker-comfy - setting progress to 100%")
+    runpod.serverless.progress_update(job, 100)
 
     images_result = process_output_images(
         history[prompt_id].get("outputs"), job["id"]
