@@ -1,3 +1,10 @@
+## [1.0.19](https://github.com/e-dream-ai/gpu-container/compare/1.0.18...1.0.19) (2026-01-08)
+
+
+### Bug Fixes
+
+* trigger build ([05c7f47](https://github.com/e-dream-ai/gpu-container/commit/05c7f47c8242e8876b38db244db90e0336e41bf6))
+
 ## [1.0.18](https://github.com/e-dream-ai/gpu-container/compare/1.0.17...1.0.18) (2026-01-08)
 
 
