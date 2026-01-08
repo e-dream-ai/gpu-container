@@ -177,35 +177,22 @@ def queue_workflow(workflow):
 def get_history(prompt_id):
     """
     Retrieve the history of a given prompt using its ID
-
-    Args:
-        prompt_id (str): The ID of the prompt whose history is to be retrieved
-
-    Returns:
-        dict: The history of the prompt, containing all the processing steps and results
-    """
-    with urllib.request.urlopen(f"http://{COMFY_HOST}/history/{prompt_id}") as response:
-        return json.loads(response.read())
-
-
-def get_progress(prompt_id):
-    """
-    Retrieve the progress of the currently executing prompt from ComfyUI's progress endpoint.
-    Only returns progress if it matches the given prompt_id.
-
-    Args:
-        prompt_id (str): The ID of the prompt whose progress we want to check
-
-    Returns:
-        dict: The progress information if it matches, None otherwise
     """
     try:
-        with urllib.request.urlopen(f"http://{COMFY_HOST}/progress") as response:
-            progress_data = json.loads(response.read())
-            if progress_data.get("prompt_id") == prompt_id:
-                return progress_data
-            return None
-    except Exception as e:
+        with urllib.request.urlopen(f"http://{COMFY_HOST}/history/{prompt_id}", timeout=5) as response:
+            return json.loads(response.read())
+    except:
+        return {}
+
+
+def get_prompt_status():
+    """
+    Get the current status of the prompt queue
+    """
+    try:
+        with urllib.request.urlopen(f"http://{COMFY_HOST}/prompt", timeout=2) as response:
+            return json.loads(response.read())
+    except:
         return None
 
 
@@ -470,44 +457,57 @@ def handler(job):
 
     # Poll for completion
     print(f"runpod-worker-comfy - wait until image generation is complete")
+    
+    # Get node IDs to track progress
+    try:
+        node_ids = sorted(list(workflow.keys()))
+        total_nodes = len(node_ids)
+    except:
+        node_ids = []
+        total_nodes = 0
+
     retries = 0
+    # Increase max retries to handle long jobs (e.g., 20 minutes)
+    MAX_POLLING_RETRIES = int(os.environ.get("COMFY_POLLING_MAX_RETRIES", 2000))
+    
     try:
         last_logged_percent = -1
-        while retries < COMFY_POLLING_MAX_RETRIES:
-            history = get_history(prompt_id)
+        while retries < MAX_POLLING_RETRIES:
+            prompt_status = get_prompt_status()
+            is_executing = False
+            percent = None
 
-            if prompt_id in history and history[prompt_id].get("outputs"):
-                runpod.serverless.progress_update(job, 100)
-                break
-            else:
-                progress_data = get_progress(prompt_id)
-                percent = None
+            if prompt_status:
+                executing = prompt_status.get("executing", {})
+                if executing.get("prompt_id") == prompt_id:
+                    is_executing = True
+                    node_id = executing.get("node")
+                    if total_nodes > 0 and node_id in node_ids:
+                        node_index = node_ids.index(node_id)
+                        percent = int((node_index / total_nodes) * 100)
+                elif prompt_status.get("exec_info", {}).get("queue_remaining", 0) > 0:
+                    is_executing = True
+                    percent = 0
+
+            if not is_executing:
+                history = get_history(prompt_id)
+                if prompt_id in history and history[prompt_id].get("outputs"):
+                    runpod.serverless.progress_update(job, 100)
+                    break
                 
-                if progress_data and isinstance(progress_data, dict):
-                    value = progress_data.get("value", 0)
-                    max_value = progress_data.get("max", 1)
-                    
-                    if max_value > 0:
-                        percent = int((value / max_value) * 100)
-                        percent = max(1, min(99, percent))
-                
-                if percent is None and COMFY_POLLING_MAX_RETRIES > 0:
-                    percent = int((retries * 100) / COMFY_POLLING_MAX_RETRIES)
-                    percent = max(1, min(99, percent))
+            if percent is None:
+                percent = min(99, int((retries * 100) / MAX_POLLING_RETRIES))
 
-                # Update progress if it has changed
-                if percent is not None and percent != last_logged_percent:
-                    if percent % PROGRESS_LOG_STEP == 0 or progress_data is not None:
-                        print(
-                            f"runpod-worker-comfy - progress: {percent}% (retries {retries}/{COMFY_POLLING_MAX_RETRIES})"
-                        )
-                    
-                    runpod.serverless.progress_update(job, percent)
-                    last_logged_percent = percent
+            percent = max(1, min(99, percent))
+            if percent != last_logged_percent:
+                runpod.serverless.progress_update(job, percent)
+                last_logged_percent = percent
+                if percent % PROGRESS_LOG_STEP == 0:
+                    print(f"runpod-worker-comfy - progress: {percent}%")
 
-                # Wait before trying again
-                time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
-                retries += 1
+            # Wait before trying again
+            time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
+            retries += 1
         else:
             return {"error": "Max retries reached while waiting for image generation"}
     except Exception as e:
