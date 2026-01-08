@@ -49,7 +49,7 @@ RUN comfy tracking disable
 WORKDIR /comfyui
 
 # Install runpod
-RUN pip install runpod requests
+RUN pip install runpod requests websocket-client
 
 # free up space
 RUN pip cache info && pip cache purge
