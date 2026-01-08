@@ -1,3 +1,10 @@
+## [1.0.18](https://github.com/e-dream-ai/gpu-container/compare/1.0.17...1.0.18) (2026-01-08)
+
+
+### Bug Fixes
+
+* use websocket ([53169ee](https://github.com/e-dream-ai/gpu-container/commit/53169eeec635625f9b265ccf9516ee81d50220aa))
+
 ## [1.0.17](https://github.com/e-dream-ai/gpu-container/compare/1.0.16...1.0.17) (2026-01-08)
 
 
