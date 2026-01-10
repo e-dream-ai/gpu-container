@@ -1,3 +1,10 @@
+## [1.0.20](https://github.com/e-dream-ai/gpu-container/compare/1.0.19...1.0.20) (2026-01-10)
+
+
+### Bug Fixes
+
+* make last frame preview image ([8f909cd](https://github.com/e-dream-ai/gpu-container/commit/8f909cd1316f351a77618a33cb4411b0b4c5a6e8))
+
 ## [1.0.19](https://github.com/e-dream-ai/gpu-container/compare/1.0.18...1.0.19) (2026-01-08)
 
 
