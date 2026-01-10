@@ -342,6 +342,17 @@ def handler(job):
                                     f"runpod-worker-comfy - execution complete via WebSocket"
                                 )
                                 break
+                    elif isinstance(out, bytes):
+                        if len(out) > 8:
+                            try:
+                                event_type = int.from_bytes(out[:4], 'big')
+                                if event_type == 1: # Preview image
+                                    image_bytes = out[8:]
+                                    import base64
+                                    preview_base64 = base64.b64encode(image_bytes).decode('utf-8')
+                                    runpod.serverless.progress_update(job, {"progress": last_percent, "preview_frame": preview_base64})
+                            except Exception as e:
+                                print(f"runpod-worker-comfy - Error processing binary preview: {e}")
                                 
                 except websocket.WebSocketTimeoutException:
                     history = get_history(prompt_id)
