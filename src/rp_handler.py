@@ -19,6 +19,7 @@ COMFY_POLLING_MAX_RETRIES = int(os.environ.get("COMFY_POLLING_MAX_RETRIES", 500)
 PROGRESS_LOG_STEP = int(os.environ.get("PROGRESS_LOG_STEP", 10))
 COMFY_HOST = "127.0.0.1:8188"
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
+PREVIEW_FETCH_INTERVAL = int(os.environ.get("PREVIEW_FETCH_INTERVAL", 2))  # seconds
 
 
 def validate_input(job_input):
@@ -118,6 +119,41 @@ def get_history(prompt_id):
             return json.loads(response.read())
     except:
         return {}
+
+
+def get_latest_preview(prompt_id):
+    """Fetch the latest preview frame from the temp directory"""
+    try:
+        response = requests.get(f"http://{COMFY_HOST}/view", params={
+            "filename": f"{prompt_id}_00001_.png",
+            "subfolder": "",
+            "type": "temp"
+        }, timeout=2)
+        
+        if response.status_code == 200:
+            return base64.b64encode(response.content).decode('utf-8')
+        
+        history = get_history(prompt_id)
+        if prompt_id in history:
+            outputs = history[prompt_id].get("outputs", {})
+            for node_output in outputs.values():
+                if "images" in node_output and node_output["images"]:
+                    latest = node_output["images"][-1]
+                    img_response = requests.get(
+                        f"http://{COMFY_HOST}/view",
+                        params={
+                            "filename": latest["filename"],
+                            "subfolder": latest.get("subfolder", ""),
+                            "type": latest.get("type", "output")
+                        },
+                        timeout=2
+                    )
+                    if img_response.status_code == 200:
+                        return base64.b64encode(img_response.content).decode('utf-8')
+    except Exception as e:
+        print(f"runpod-worker-comfy - Error fetching preview: {str(e)}")
+    
+    return None
 
 
 def upload_to_r2(job_id: str, image_path: str) -> dict:
@@ -308,9 +344,30 @@ def handler(job):
         ws = None
 
     last_percent = 0
+    last_preview_fetch = 0
+    last_preview_hash = None
 
     try:
         while True:
+            current_time = time.time()
+            
+            if current_time - last_preview_fetch >= PREVIEW_FETCH_INTERVAL:
+                preview_frame = get_latest_preview(prompt_id)
+                if preview_frame:
+                    preview_hash = hash(preview_frame[:100])
+                    if preview_hash != last_preview_hash:
+                        runpod.serverless.progress_update(
+                            job, 
+                            {
+                                "progress": last_percent, 
+                                "preview_frame": preview_frame
+                            }
+                        )
+                        print(f"runpod-worker-comfy - sent preview frame at {last_percent}%")
+                        last_preview_hash = preview_hash
+                
+                last_preview_fetch = current_time
+
             if ws:
                 try:
                     out = ws.recv()
@@ -342,17 +399,6 @@ def handler(job):
                                     f"runpod-worker-comfy - execution complete via WebSocket"
                                 )
                                 break
-                    elif isinstance(out, bytes):
-                        if len(out) > 8:
-                            try:
-                                event_type = int.from_bytes(out[:4], 'big')
-                                if event_type == 1: # Preview image
-                                    image_bytes = out[8:]
-                                    import base64
-                                    preview_base64 = base64.b64encode(image_bytes).decode('utf-8')
-                                    runpod.serverless.progress_update(job, {"progress": last_percent, "preview_frame": preview_base64})
-                            except Exception as e:
-                                print(f"runpod-worker-comfy - Error processing binary preview: {e}")
                                 
                 except websocket.WebSocketTimeoutException:
                     history = get_history(prompt_id)
