@@ -112,7 +112,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         # Assertions
         self.assertEqual(result, {"key": "value"})
-        mock_urlopen.assert_called_with("http://127.0.0.1:8188/history/123")
+        mock_urlopen.assert_called_with("http://127.0.0.1:8188/history/123", timeout=5)
 
     @patch("builtins.open", new_callable=mock_open, read_data=b"test")
     def test_base64_encode(self, mock_file):
