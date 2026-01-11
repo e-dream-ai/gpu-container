@@ -104,11 +104,8 @@ def upload_images(images):
     }
 
 
-def queue_workflow(workflow, client_id=None):
-    payload = {"prompt": workflow}
-    if client_id:
-        payload["client_id"] = client_id
-    data = json.dumps(payload).encode("utf-8")
+def queue_workflow(workflow):
+    data = json.dumps({"prompt": workflow}).encode("utf-8")
     req = urllib.request.Request(f"http://{COMFY_HOST}/prompt", data=data)
     return json.loads(urllib.request.urlopen(req).read())
 
@@ -289,6 +286,13 @@ def handler(job):
     if upload_result["status"] == "error":
         return upload_result
 
+    try:
+        queued_workflow = queue_workflow(workflow)
+        prompt_id = queued_workflow["prompt_id"]
+        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
+    except Exception as e:
+        return {"error": f"Error queuing workflow: {str(e)}"}
+
     client_id = str(uuid.uuid4())
     ws = None
 
@@ -300,15 +304,6 @@ def handler(job):
     except Exception as e:
         print(f"runpod-worker-comfy - WebSocket connection failed: {str(e)}")
         ws = None
-
-    try:
-        queued_workflow = queue_workflow(workflow, client_id)
-        prompt_id = queued_workflow["prompt_id"]
-        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
-    except Exception as e:
-        if ws:
-            ws.close()
-        return {"error": f"Error queuing workflow: {str(e)}"}
 
     last_percent = 0
 
@@ -345,30 +340,6 @@ def handler(job):
                                     f"runpod-worker-comfy - execution complete"
                                 )
                                 break
-                    elif isinstance(out, bytes):
-                        if len(out) > 8:
-                            try:
-                                event_type = int.from_bytes(out[:4], 'little')
-                                if event_type == 1:
-                                    image_bytes = out[8:]
-                                    preview_base64 = base64.b64encode(
-                                        image_bytes
-                                    ).decode('utf-8')
-                                    runpod.serverless.progress_update(
-                                        job,
-                                        {
-                                            "progress": last_percent,
-                                            "preview_frame": preview_base64
-                                        }
-                                    )
-                                    print(
-                                        f"runpod-worker-comfy - sent preview at {last_percent}%"
-                                    )
-                            except Exception as e:
-                                print(
-                                    f"runpod-worker-comfy - binary preview error: {e}"
-                                )
-
                 except websocket.WebSocketTimeoutException:
                     history = get_history(prompt_id)
                     if prompt_id in history and history[prompt_id].get("outputs"):
