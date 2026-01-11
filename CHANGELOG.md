@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/e-dream-ai/gpu-container/compare/1.0.22...1.1.0) (2026-01-11)
+
+
+### Features
+
+* enhance queue_workflow function to accept optional client_id and improve error handling in handler ([8a04c90](https://github.com/e-dream-ai/gpu-container/commit/8a04c903e3061e07220fbafcbf9319b9fcde0dbb))
+
 ## [1.0.22](https://github.com/e-dream-ai/gpu-container/compare/1.0.21...1.0.22) (2026-01-11)
 
 
