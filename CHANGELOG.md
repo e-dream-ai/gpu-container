@@ -1,3 +1,10 @@
+## [1.0.22](https://github.com/e-dream-ai/gpu-container/compare/1.0.21...1.0.22) (2026-01-11)
+
+
+### Bug Fixes
+
+* remove unused get_latest_preview function and streamline preview handling in the handler ([32b133c](https://github.com/e-dream-ai/gpu-container/commit/32b133c9e32a5511e9c4275c527e729508f4b449))
+
 ## [1.0.21](https://github.com/e-dream-ai/gpu-container/compare/1.0.20...1.0.21) (2026-01-11)
 
 
