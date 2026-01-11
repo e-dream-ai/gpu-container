@@ -104,8 +104,11 @@ def upload_images(images):
     }
 
 
-def queue_workflow(workflow):
-    data = json.dumps({"prompt": workflow}).encode("utf-8")
+def queue_workflow(workflow, client_id=None):
+    payload = {"prompt": workflow}
+    if client_id:
+        payload["client_id"] = client_id
+    data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(f"http://{COMFY_HOST}/prompt", data=data)
     return json.loads(urllib.request.urlopen(req).read())
 
@@ -286,13 +289,6 @@ def handler(job):
     if upload_result["status"] == "error":
         return upload_result
 
-    try:
-        queued_workflow = queue_workflow(workflow)
-        prompt_id = queued_workflow["prompt_id"]
-        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
-    except Exception as e:
-        return {"error": f"Error queuing workflow: {str(e)}"}
-
     client_id = str(uuid.uuid4())
     ws = None
 
@@ -304,6 +300,15 @@ def handler(job):
     except Exception as e:
         print(f"runpod-worker-comfy - WebSocket connection failed: {str(e)}")
         ws = None
+
+    try:
+        queued_workflow = queue_workflow(workflow, client_id)
+        prompt_id = queued_workflow["prompt_id"]
+        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
+    except Exception as e:
+        if ws:
+            ws.close()
+        return {"error": f"Error queuing workflow: {str(e)}"}
 
     last_percent = 0
 
