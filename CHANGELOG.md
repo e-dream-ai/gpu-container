@@ -1,3 +1,10 @@
+## [1.0.21](https://github.com/e-dream-ai/gpu-container/compare/1.0.20...1.0.21) (2026-01-11)
+
+
+### Bug Fixes
+
+* try using /view endpoint ([3275178](https://github.com/e-dream-ai/gpu-container/commit/3275178bea2c39a796a86c996d6e716d8b0fa8f9))
+
 ## [1.0.20](https://github.com/e-dream-ai/gpu-container/compare/1.0.19...1.0.20) (2026-01-10)
 
 
