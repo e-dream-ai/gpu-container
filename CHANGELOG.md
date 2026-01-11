@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/e-dream-ai/gpu-container/compare/1.1.0...1.1.1) (2026-01-11)
+
+
+### Bug Fixes
+
+* fix tests and preview frame logic removal ([8e94246](https://github.com/e-dream-ai/gpu-container/commit/8e94246768484b5acee838f0f90fe9c10fb23059))
+
 # [1.1.0](https://github.com/e-dream-ai/gpu-container/compare/1.0.22...1.1.0) (2026-01-11)
 
 
