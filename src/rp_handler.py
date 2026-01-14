@@ -305,6 +305,7 @@ def handler(job):
         print(f"runpod-worker-comfy - WebSocket connection failed: {str(e)}")
         ws = None
 
+    start_time = time.perf_counter()
     last_percent = 0
 
     try:
@@ -321,10 +322,18 @@ def handler(job):
                             max_value = data.get("max", 100)
 
                             if max_value > 0:
-                                percent = min(99, int((value / max_value) * 100))
+                                percent = min(99.9, round((value / max_value) * 100, 1))
                                 if percent != last_percent:
-                                    runpod.serverless.progress_update(job, percent)
-                                    if percent % PROGRESS_LOG_STEP == 0:
+                                    elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+                                    countdown_ms = int((elapsed_ms / percent) * (100 - percent)) if percent > 0 else 0
+                                    
+                                    runpod.serverless.progress_update(job, {
+                                        "progress": percent,
+                                        "render_time_ms": elapsed_ms,
+                                        "countdown_ms": countdown_ms
+                                    })
+                                    
+                                    if int(percent) != int(last_percent) and int(percent) % PROGRESS_LOG_STEP == 0:
                                         print(
                                             f"runpod-worker-comfy - progress: {percent}%"
                                         )
@@ -366,7 +375,12 @@ def handler(job):
         return {"error": "No outputs found in history"}
 
     print(f"runpod-worker-comfy - setting progress to 100%")
-    runpod.serverless.progress_update(job, 100)
+    elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+    runpod.serverless.progress_update(job, {
+        "progress": 100,
+        "render_time_ms": elapsed_ms,
+        "countdown_ms": 0
+    })
 
     images_result = process_output_images(
         history[prompt_id].get("outputs"), job["id"]
