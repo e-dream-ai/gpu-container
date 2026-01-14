@@ -375,7 +375,7 @@ def handler(job):
     print(f"runpod-worker-comfy - setting progress to 100%")
     elapsed_ms = int((time.perf_counter() - start_time) * 1000)
     runpod.serverless.progress_update(job, {
-        "progress": 100,
+        "progress": 100.0,
         "render_time_ms": elapsed_ms
     })
 
