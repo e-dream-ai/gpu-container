@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/e-dream-ai/gpu-container/compare/1.2.0...1.2.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* update progress value to float in handler ([609f9a8](https://github.com/e-dream-ai/gpu-container/commit/609f9a87559c2ced7abbff02f29cff19743d2afa))
+
 # [1.2.0](https://github.com/e-dream-ai/gpu-container/compare/1.1.1...1.2.0) (2026-01-14)
 
 
