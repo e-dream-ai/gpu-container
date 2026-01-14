@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/e-dream-ai/gpu-container/compare/1.1.1...1.2.0) (2026-01-14)
+
+
+### Features
+
+* enhance progress reporting in handler with elapsed time and countdown ([5500e34](https://github.com/e-dream-ai/gpu-container/commit/5500e34ddf808f2fa567e2190b6eff9b700d1d45))
+
 ## [1.1.1](https://github.com/e-dream-ai/gpu-container/compare/1.1.0...1.1.1) (2026-01-11)
 
 
