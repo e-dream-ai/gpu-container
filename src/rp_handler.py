@@ -325,10 +325,11 @@ def handler(job):
                                 percent = min(99.9, round((value / max_value) * 100, 1))
                                 if percent != last_percent:
                                     elapsed_ms = int((time.perf_counter() - start_time) * 1000)
+                                    countdown_ms = int((elapsed_ms / percent) * (100 - percent)) if percent > 0 else 0
                                     
                                     runpod.serverless.progress_update(job, {
                                         "progress": percent,
-                                        "render_time_ms": elapsed_ms
+                                        "countdown_ms": countdown_ms
                                     })
                                     
                                     if int(percent) != int(last_percent) and int(percent) % PROGRESS_LOG_STEP == 0:
@@ -373,10 +374,9 @@ def handler(job):
         return {"error": "No outputs found in history"}
 
     print(f"runpod-worker-comfy - setting progress to 100%")
-    elapsed_ms = int((time.perf_counter() - start_time) * 1000)
     runpod.serverless.progress_update(job, {
         "progress": 100.0,
-        "render_time_ms": elapsed_ms
+        "countdown_ms": 0
     })
 
     images_result = process_output_images(
