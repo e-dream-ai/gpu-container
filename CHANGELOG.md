@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/e-dream-ai/gpu-container/compare/1.2.1...1.2.2) (2026-01-15)
+
+
+### Bug Fixes
+
+* update countdown calculation in progress reporting ([d7058cb](https://github.com/e-dream-ai/gpu-container/commit/d7058cbf69bfefc95f4c18658c23ded0b6404ca7))
+
 ## [1.2.1](https://github.com/e-dream-ai/gpu-container/compare/1.2.0...1.2.1) (2026-01-14)
 
 
