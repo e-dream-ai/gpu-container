@@ -1,8 +1,8 @@
-variable "DOCKERHUB_REPO" {
-  default = "timpietruskyblibla"
+variable "REGISTRY_REPO" {
+  default = "ghcr.io/timpietruskyblibla"
 }
 
-variable "DOCKERHUB_IMG" {
+variable "IMAGE_NAME" {
   default = "runpod-worker-comfy"
 }
 
@@ -24,7 +24,7 @@ target "base" {
   dockerfile = "Dockerfile"
   target = "base"
   platforms = ["linux/amd64"]
-  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-base"]
+  tags = ["${REGISTRY_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}-base"]
 }
 
 target "sdxl" {
@@ -34,7 +34,7 @@ target "sdxl" {
   args = {
     MODEL_TYPE = "sdxl"
   }
-  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-sdxl"]
+  tags = ["${REGISTRY_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}-sdxl"]
   inherits = ["base"]
 }
 
@@ -46,7 +46,7 @@ target "sd3" {
     MODEL_TYPE = "sd3"
     HUGGINGFACE_ACCESS_TOKEN = "${HUGGINGFACE_ACCESS_TOKEN}"
   }
-  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-sd3"]
+  tags = ["${REGISTRY_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}-sd3"]
   inherits = ["base"]
 }
 
@@ -58,7 +58,7 @@ target "flux1-schnell" {
     MODEL_TYPE = "flux1-schnell"
     HUGGINGFACE_ACCESS_TOKEN = "${HUGGINGFACE_ACCESS_TOKEN}"
   }
-  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-flux1-schnell"]
+  tags = ["${REGISTRY_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}-flux1-schnell"]
   inherits = ["base"]
 }
 
@@ -70,7 +70,6 @@ target "flux1-dev" {
     MODEL_TYPE = "flux1-dev"
     HUGGINGFACE_ACCESS_TOKEN = "${HUGGINGFACE_ACCESS_TOKEN}"
   }
-  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-flux1-dev"]
+  tags = ["${REGISTRY_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}-flux1-dev"]
   inherits = ["base"]
 }
-
