@@ -25,6 +25,8 @@ target "base" {
   target = "base"
   platforms = ["linux/amd64"]
   tags = ["${REGISTRY_REPO}/${IMAGE_NAME}:${RELEASE_VERSION}-base"]
+  cache-from = ["type=gha"]
+  cache-to = ["type=gha,mode=max"]
 }
 
 target "sdxl" {
